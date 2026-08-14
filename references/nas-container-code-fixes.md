@@ -6,38 +6,38 @@
 
 | 文件类型 | 能否从 NAS 源目录改 | 修复途径 |
 |---|---|---|
-| config.json（ro bind mount） | ✅ 改 `/volume1/docker/user/<name>/config.json` | 临时 rw 容器写回 + 重启 |
+| config.json（ro bind mount） | ✅ 改 `/volume1/docker/<name>/config.json` | 临时 rw 容器写回 + 重启 |
 | processor_ai.py（镜像层，非挂载） | ❌ 改 NAS 源无效（容器用镜像层副本） | ① `docker cp` 覆盖容器内文件（写入可写层，重启容器保留）② 重新构建镜像 |
 | data/（rw mount） | ✅ 直接改 | docker exec 写入 |
 
 **docker cp 覆盖镜像层文件**（最常用）：
 ```bash
 # 本地修改 → docker cp 覆盖容器内文件（重启不丢，重建镜像才丢）
-docker cp /opt/data/processor_ai_fixed.py ai-morning:/app/processor_ai.py
+docker cp /path/to/data/processor_ai_fixed.py service:/app/processor_ai.py
 # 验证容器内确实更新
-docker exec ai-morning grep -c "fetch_news" /app/processor_ai.py
+docker exec service grep -c "fetch_news" /app/processor_ai.py
 ```
 
 **修改镜像层代码的完整流程**：
-1. `docker run --rm -v /volume1:/vol1 alpine cat /vol1/docker/user/<name>/processor_ai.py > /opt/data/xxx.py` 读源
+1. `docker run --rm -v /volume1:/vol1 alpine cat /vol1/docker/<name>/processor_ai.py > /path/to/data/xxx.py` 读源
 2. 本地用 write_file/patch 修改
 3. `docker cp` 进容器（或临时容器写回 NAS 源——注意 NAS 源只影响未来重建，不影响当前容器）
 4. 重启容器验证
 
 ## 临时容器多挂载陷阱
 
-`docker run --rm -v /volume1:/vol1 -v /opt/data/xxx.json:/tmp/new.json alpine cp /tmp/new.json /vol1/...`
+`docker run --rm -v /volume1:/vol1 -v /path/to/data/xxx.json:/tmp/new.json alpine cp /tmp/new.json /vol1/...`
 会报 `Not a directory` —— 两个 -v 同时挂载文件+目录时路径解析错乱。
 
-**解法**：利用 hermes 挂载点作为中转（hermes 的 /opt/data 本身就映射到 `/volume1/docker/user/Hermes`），临时容器只挂 `/volume1:/vol1` 一个源，从 `/vol1/docker/user/Hermes/<file>` 读中转文件：
+**解法**：利用 hermes 挂载点作为中转（hermes 的 /path/to/data 本身就映射到 `/volume1/docker/agent`），临时容器只挂 `/volume1:/vol1` 一个源，从 `/vol1/docker/agent/<file>` 读中转文件：
 ```bash
 docker run --rm -v /volume1:/vol1 alpine sh -c \
-  "cp /vol1/docker/user/<name>/config.json /vol1/docker/user/<name>/config.json.bak_0811 && \
-   cp /vol1/docker/user/Hermes/ai_morning_new_config.json /vol1/docker/user/<name>/config.json && \
+  "cp /vol1/docker/<name>/config.json /vol1/docker/<name>/config.json.bak_0811 && \
+   cp /vol1/docker/agent/ai_morning_new_config.json /vol1/docker/<name>/config.json && \
    echo MODIFIED_OK"
 ```
 
-## 新闻容器去重历史导致"无符合条件的新闻"（ai-carnews）
+## 新闻容器去重历史导致"无符合条件的新闻"（service）
 
 **症状**：日志显示 `无符合条件的新闻，跳过本次推送`，但百度搜索 API 单独测试返回 8 条/查询。
 
@@ -56,7 +56,7 @@ pickle.dump(h2, open('/app/news_history.pkl','wb'))
 ```
 先备份 `cp news_history.pkl news_history.pkl.bak`。去重窗口看 config `dedup_window_days`。
 
-## 新闻容器"内容前后一致"根因（ai-morning）
+## 新闻容器"内容前后一致"根因（service）
 
 **症状**：每次推送新闻内容一样。
 

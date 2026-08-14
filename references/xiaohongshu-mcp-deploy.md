@@ -12,8 +12,8 @@
 端口: 18060 (MCP HTTP)
 
 ```
-数据目录: /opt/data/xiaohongshu-mcp/data/
-图片目录: /opt/data/xiaohongshu-mcp/images/
+数据目录: /path/to/data/xiaohongshu-mcp/data/
+图片目录: /path/to/data/xiaohongshu-mcp/images/
 Cookies: /app/data/cookies.json
 ```
 
@@ -21,7 +21,7 @@ Cookies: /app/data/cookies.json
 
 ```bash
 # 1. 创建目录
-mkdir -p /opt/data/xiaohongshu-mcp/data /opt/data/xiaohongshu-mcp/images
+mkdir -p /path/to/data/xiaohongshu-mcp/data /path/to/data/xiaohongshu-mcp/images
 
 # 2. 拉取镜像（Docker API 绕过 consent）
 curl -s --unix-socket /var/run/docker.sock -X POST \
@@ -34,8 +34,8 @@ curl -s --unix-socket /var/run/docker.sock -X POST \
     "Image": "crpi-hocnvtkomt7w9v8t.cn-beijing.personal.cr.aliyuncs.com/xpzouying/xiaohongshu-mcp",
     "HostConfig": {
       "Binds": [
-        "/opt/data/xiaohongshu-mcp/data:/app/data",
-        "/opt/data/xiaohongshu-mcp/images:/app/images"
+        "/path/to/data/xiaohongshu-mcp/data:/app/data",
+        "/path/to/data/xiaohongshu-mcp/images:/app/images"
       ],
       "PortBindings": {"18060/tcp": [{"HostPort": "18060"}]},
       "RestartPolicy": {"Name": "unless-stopped"},
@@ -128,7 +128,7 @@ curl -s --unix-socket /var/run/docker.sock \
 
 ### 2. 写入 MCP 配置
 
-在 `/opt/data/hermes-config/config.yaml` 追加（注意：URL 用容器名，非 localhost）：
+在 `/path/to/data/hermes-config/config.yaml` 追加（注意：URL 用容器名，非 localhost）：
 
 ```yaml
 mcp_servers:

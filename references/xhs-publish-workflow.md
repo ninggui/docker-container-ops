@@ -28,7 +28,7 @@ docker exec xiaohongshu-mcp sh -c \
 **payload 构造**：写文件 → docker cp → 容器内 curl -d @file，避免 shell 转义：
 
 ```bash
-cat > /opt/data/xhs_payload.json << 'PAYLOAD'
+cat > /path/to/data/xhs_payload.json << 'PAYLOAD'
 {"jsonrpc":"2.0","method":"tools/call","params":{"name":"publish_content","arguments":{
   "title":"标题≤20字",
   "content":"正文≤1000字",
@@ -36,7 +36,7 @@ cat > /opt/data/xhs_payload.json << 'PAYLOAD'
   "images":["https://images.unsplash.com/xxx"]
 }},"id":1}
 PAYLOAD
-docker cp /opt/data/xhs_payload.json xiaohongshu-mcp:/tmp/payload.json
+docker cp /path/to/data/xhs_payload.json xiaohongshu-mcp:/tmp/payload.json
 docker exec xiaohongshu-mcp sh -c \
   "curl -s --max-time 300 'http://127.0.0.1:18060/mcp' -H 'Content-Type: application/json' -d @/tmp/payload.json"
 ```

@@ -14,11 +14,11 @@ BASE="http://localhost"
 
 # --- 容器生命周期 ---
 # 重启容器
-curl -s $SOCK -X POST "$BASE/containers/ai-morning/restart"
+curl -s $SOCK -X POST "$BASE/containers/service/restart"
 # 停止容器
-curl -s $SOCK -X POST "$BASE/containers/ai-morning/stop"
+curl -s $SOCK -X POST "$BASE/containers/service/stop"
 # 启动容器
-curl -s $SOCK -X POST "$BASE/containers/ai-morning/start"
+curl -s $SOCK -X POST "$BASE/containers/service/start"
 
 # --- 创建新容器 ---
 # 完整创建（含挂载、端口、环境变量、重启策略）
@@ -44,14 +44,14 @@ curl -s $SOCK "$BASE/images/json"
 
 # --- 日志和检查 ---
 # 查看日志（stdout）
-curl -s $SOCK "$BASE/containers/ai-morning/logs?stdout=true&tail=5"
+curl -s $SOCK "$BASE/containers/service/logs?stdout=true&tail=5"
 # 检查容器状态
-curl -s $SOCK "$BASE/containers/ai-morning/json" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['State']['Status'])"
+curl -s $SOCK "$BASE/containers/service/json" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['State']['Status'])"
 
 # --- exec 执行命令 ---
 # 创建 exec 实例
 curl -s $SOCK -X POST -H "Content-Type: application/json" \
-  "$BASE/containers/ai-morning/exec" \
+  "$BASE/containers/service/exec" \
   -d '{"Cmd":["cat","/app/config.json"],"AttachStdout":true}'
 ```
 

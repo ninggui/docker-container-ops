@@ -11,8 +11,8 @@ curl -s --unix-socket /var/run/docker.sock \
   -H "Content-Type: application/json" -d '{
     "Image": "crpi-hocnvtkomt7w9v8t.cn-beijing.personal.cr.aliyuncs.com/xpzouying/xiaohongshu-mcp",
     "HostConfig": {
-      "Binds": ["/opt/data/xiaohongshu-mcp-02/data:/app/data",
-                "/opt/data/xiaohongshu-mcp-02/images:/app/images"],
+      "Binds": ["/path/to/data/xiaohongshu-mcp-02/data:/app/data",
+                "/path/to/data/xiaohongshu-mcp-02/images:/app/images"],
       "PortBindings": {"18060/tcp": [{"HostPort": "18061"}]},
       "RestartPolicy": {"Name": "unless-stopped"},
       "Init": true, "Tty": true

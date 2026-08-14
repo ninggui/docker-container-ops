@@ -48,7 +48,7 @@ curl -s --unix-socket /var/run/docker.sock \
 从 Hermes 容器内通过 **容器名**（Docker DNS）访问 MCP 端点：
 
 ```bash
-# 写入测试脚本（/opt/data 可写）
+# 写入测试脚本（/path/to/data 可写）
 python3 -c "
 import urllib.request, json
 data = json.dumps({'jsonrpc':'2.0','method':'initialize','params':{'protocolVersion':'2024-11-05','capabilities':{},'clientInfo':{'name':'test','version':'1.0'}},'id':1}).encode()
@@ -63,11 +63,11 @@ except Exception as e:
 
 ### 4. 写入 Hermes MCP 配置
 
-`/opt/data/hermes-config/config.yaml` 通常是 root 所有，无法直接 `patch` 或 `write_file`。用 Docker exec API 在 Hermes 容器内执行写入：
+`/path/to/data/hermes-config/config.yaml` 通常是 root 所有，无法直接 `patch` 或 `write_file`。用 Docker exec API 在 Hermes 容器内执行写入：
 
 ```bash
-# 先写配置片段到 /opt/data（可写）
-# write_file /opt/data/mcp_snippet.yaml:
+# 先写配置片段到 /path/to/data（可写）
+# write_file /path/to/data/mcp_snippet.yaml:
 #   mcp_servers:
 #     <name>:
 #       url: "http://<container_name>:<port>/mcp"
@@ -79,7 +79,7 @@ except Exception as e:
 curl -s --unix-socket /var/run/docker.sock -X POST \
   "http://localhost/containers/hermes/exec" \
   -H "Content-Type: application/json" \
-  -d '{"Cmd":["python3","-c","a=open(\"/opt/data/mcp_snippet.yaml\").read();open(\"/opt/data/hermes-config/config.yaml\",\"a\").write(a);print(\"DONE\")"],"AttachStdout":true,"AttachStderr":true}' \
+  -d '{"Cmd":["python3","-c","a=open(\"/path/to/data/mcp_snippet.yaml\").read();open(\"/path/to/data/hermes-config/config.yaml\",\"a\").write(a);print(\"DONE\")"],"AttachStdout":true,"AttachStderr":true}' \
   -o /tmp/exec_create.json
 
 # 2) 获取 exec ID 并启动
