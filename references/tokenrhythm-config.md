@@ -1,14 +1,14 @@
-# TokenRhythm 配置（ai-morning 当前提供商）
+# TokenRhythm 配置（service-morning 当前提供商）
 
 ## 生效日期
-2026-08-09：ai-morning 已从硅基流动切换到 TokenRhythm。
+2026-08-09：service-morning 已从硅基流动切换到 TokenRhythm。
 
 ## 当前配置
 
 ```json
 {
   "ai": {
-    "api_key": "sk_tr_j6XU0-DjFBHp8lFcytqjXOhJzWEUZl4u0a8ndLCUzz8",
+    "api_key": "<api_key>",
     "base_url": "https://tokenrhythm.studio/v1",
     "model": "deepseek-v4-flash"
   }
@@ -33,8 +33,8 @@
 
 ```bash
 # 临时容器法恢复备份
-docker run -d --name tmp-rollback -v /nas/docker/ai-morning:/work:rw alpine sleep 300
+docker run -d --name tmp-rollback -v /nas/docker/service-morning:/work:rw alpine sleep 300
 docker exec tmp-rollback cp /work/config.json.sf_backup /work/config.json
 docker exec tmp-rollback cat /work/config.json  # 验证
-docker exec ai-morning pkill -f "app_main_fixed.py"
+docker exec service-morning pkill -f "app_main_fixed.py"
 ```

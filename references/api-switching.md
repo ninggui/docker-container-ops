@@ -13,7 +13,7 @@
 ```
 
 ## Critical: config.json is ALWAYS read-only
-ai-morning / ai-carnews / ai-up 的 config.json 均为 bind mount（ro），容器内 `python3` 写入会报 `OSError: [Errno 30] Read-only file system`。
+service-morning / service-news / service-up 的 config.json 均为 bind mount（ro），容器内 `python3` 写入会报 `OSError: [Errno 30] Read-only file system`。
 
 ## Switching Workflow (Verified 2026-08-09)
 
@@ -79,9 +79,9 @@ docker exec <container> cat /app/config.json | python3 -c \
 
 | 容器 | config.json 挂载 | 修改方式 |
 |------|:--:|------|
-| ai-morning | ro bind mount | 临时 rw 容器 |
-| ai-carnews | ro bind mount | 同上 |
-| ai-up | ro bind mount | 同上 |
+| service-morning | ro bind mount | 临时 rw 容器 |
+| service-news | ro bind mount | 同上 |
+| service-up | ro bind mount | 同上 |
 
 ## TokenRhythm vs SiliconFlow
 
@@ -89,7 +89,7 @@ docker exec <container> cat /app/config.json | python3 -c \
 |-------|------------|-------------|
 | base_url | https://api.siliconflow.cn/v1 | https://tokenrhythm.studio/v1 |
 | model | deepseek-ai/DeepSeek-V3 | deepseek-v4-flash |
-| api_key | sk-ewo...yfkw | sk_tr_... |
+| api_key | <api_key> | sk_tr_... |
 
 ## Rollback
 与修改流程相同，用 temp rw 容器恢复 `.sf_backup` → config.json → pkill 重启。

@@ -2,7 +2,7 @@
 
 ## 适用场景
 
-容器内配置文件为只读 bind mount（如 ai-morning 的 `/app/config.json`），无法直接在容器内修改或 docker cp 到容器内路径。
+容器内配置文件为只读 bind mount（如 service-morning 的 `/app/config.json`），无法直接在容器内修改或 docker cp 到容器内路径。
 
 ## 原理
 

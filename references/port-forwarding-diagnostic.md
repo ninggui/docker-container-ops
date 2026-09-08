@@ -23,10 +23,10 @@ docker exec <container> curl -sv http://127.0.0.1:<port>/health
 
 ### Step 2：宿主机端口监听检查（关键）
 
-将端口号转换为 hex（如 18060 → 0x468C），检查 `/proc/net/tcp`：
+将端口号转换为 hex（如 <port> → 0x468C），检查 `/proc/net/tcp`：
 
 ```bash
-# 端口转换：printf '%04X' 18060 → 468C
+# 端口转换：printf '%04X' <port> → 468C
 # 在 /proc/net/tcp 中搜索 LISTEN 状态（st=0A）的该端口
 awk '$2 ~ /0000468C/ && $4 == "0A"' /proc/net/tcp
 ```
@@ -38,7 +38,7 @@ awk '$2 ~ /0000468C/ && $4 == "0A"' /proc/net/tcp
 
 ```bash
 awk '$3 ~ /030012AC:468C/' /proc/net/tcp
-# 端口 468C（18060）连到容器 IP 如 172.18.0.3
+# 端口 468C（<port>）连到容器 IP 如 172.18.0.3
 ```
 
 ### Step 3：Docker 转发机制检查

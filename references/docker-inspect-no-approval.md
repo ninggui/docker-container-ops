@@ -25,7 +25,7 @@ docker inspect <container> --format '{{(index .NetworkSettings.Networks "hermes_
 
 # Check if two containers share a network (example)
 docker inspect hermes --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
-docker inspect xiaohongshu-mcp --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
+docker inspect service-xhs --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
 # If output overlaps → same network
 
 # Verify connectivity (container A → container B)

@@ -13,13 +13,13 @@
 **docker cp 覆盖镜像层文件**（最常用）：
 ```bash
 # 本地修改 → docker cp 覆盖容器内文件（重启不丢，重建镜像才丢）
-docker cp /home/user/processor_ai_fixed.py ai-morning:/app/processor_ai.py
+docker cp /home/user/processor_ai_fixed.py service-morning:/app/processor_ai.py
 # 验证容器内确实更新
-docker exec ai-morning grep -c "fetch_news" /app/processor_ai.py
+docker exec service-morning grep -c "fetch_news" /app/processor_ai.py
 ```
 
 **修改镜像层代码的完整流程**：
-1. `docker run --rm -v /nas:/vol1 alpine cat /vol1/docker/user/<name>/processor_ai.py > /home/user/xxx.py` 读源
+1. `docker run --rm -v /nas:/vol1 alpine cat /vol1/docker/agent/<name>/processor_ai.py > /home/user/xxx.py` 读源
 2. 本地用 write_file/patch 修改
 3. `docker cp` 进容器（或临时容器写回 NAS 源——注意 NAS 源只影响未来重建，不影响当前容器）
 4. 重启容器验证
@@ -29,15 +29,15 @@ docker exec ai-morning grep -c "fetch_news" /app/processor_ai.py
 `docker run --rm -v /nas:/vol1 -v /home/user/xxx.json:/tmp/new.json alpine cp /tmp/new.json /vol1/...`
 会报 `Not a directory` —— 两个 -v 同时挂载文件+目录时路径解析错乱。
 
-**解法**：利用 hermes 挂载点作为中转（hermes 的 /home/user 本身就映射到 `/nas/docker/agent`），临时容器只挂 `/nas:/vol1` 一个源，从 `/vol1/docker/user/Hermes/<file>` 读中转文件：
+**解法**：利用 hermes 挂载点作为中转（hermes 的 /home/user 本身就映射到 `/nas/docker/agent`），临时容器只挂 `/nas:/vol1` 一个源，从 `/vol1/docker/agent/<file>` 读中转文件：
 ```bash
 docker run --rm -v /nas:/vol1 alpine sh -c \
-  "cp /vol1/docker/user/<name>/config.json /vol1/docker/user/<name>/config.json.bak_0811 && \
-   cp /vol1/docker/user/Hermes/ai_morning_new_config.json /vol1/docker/user/<name>/config.json && \
+  "cp /vol1/docker/agent/<name>/config.json /vol1/docker/agent/<name>/config.json.bak_0811 && \
+   cp /vol1/docker/agent/ai_morning_new_config.json /vol1/docker/agent/<name>/config.json && \
    echo MODIFIED_OK"
 ```
 
-## 新闻容器去重历史导致"无符合条件的新闻"（ai-carnews）
+## 新闻容器去重历史导致"无符合条件的新闻"（service-news）
 
 **症状**：日志显示 `无符合条件的新闻，跳过本次推送`，但百度搜索 API 单独测试返回 8 条/查询。
 
@@ -56,7 +56,7 @@ pickle.dump(h2, open('/app/news_history.pkl','wb'))
 ```
 先备份 `cp news_history.pkl news_history.pkl.bak`。去重窗口看 config `dedup_window_days`。
 
-## 新闻容器"内容前后一致"根因（ai-morning）
+## 新闻容器"内容前后一致"根因（service-morning）
 
 **症状**：每次推送新闻内容一样。
 

@@ -7,13 +7,13 @@
 
 ```bash
 curl -s --unix-socket /var/run/docker.sock \
-  -X POST "http://localhost/containers/create?name=xiaohongshu-mcp-02" \
+  -X POST "http://localhost/containers/create?name=service-xhs-02" \
   -H "Content-Type: application/json" -d '{
-    "Image": "crpi-hocnvtkomt7w9v8t.cn-beijing.personal.cr.aliyuncs.com/xpzouying/xiaohongshu-mcp",
+    "Image": "crpi-hocnvtkomt7w9v8t.cn-beijing.personal.cr.aliyuncs.com/xpzouying/service-xhs",
     "HostConfig": {
-      "Binds": ["/path/to/data/xiaohongshu-mcp-02/data:/app/data",
-                "/path/to/data/xiaohongshu-mcp-02/images:/app/images"],
-      "PortBindings": {"18060/tcp": [{"HostPort": "18061"}]},
+      "Binds": ["/path/to/data/service-xhs-02/data:/app/data",
+                "/path/to/data/service-xhs-02/images:/app/images"],
+      "PortBindings": {"<port>/tcp": [{"HostPort": "18061"}]},
       "RestartPolicy": {"Name": "unless-stopped"},
       "Init": true, "Tty": true
     },
@@ -24,8 +24,8 @@ curl -s --unix-socket /var/run/docker.sock \
 ```
 
 ## 账号隔离
-- 容器1 (18060): xiaohongshu-mcp — 主账号
-- 容器2 (18061): xiaohongshu-mcp-02 — 辅账号
+- 容器1 (<port>): service-xhs — 主账号
+- 容器2 (18061): service-xhs-02 — 辅账号
 - Cookie/登录态完全独立（不同 data 目录）
 
 ## 已知问题

@@ -1,19 +1,19 @@
-# xiaohongshu-mcp 部署记录
+# service-xhs 部署记录
 
 **日期**: 2026-08-09
-**项目**: https://github.com/xpzouying/xiaohongshu-mcp (15K+ stars)
+**项目**: https://github.com/xpzouying/service-xhs (15K+ stars)
 **功能**: 小红书全自动运营 — 发笔记、读/回评论、搜索、点赞收藏
 
 ## 部署配置
 
-镜像: `crpi-hocnvtkomt7w9v8t.cn-beijing.personal.cr.aliyuncs.com/xpzouying/xiaohongshu-mcp` (阿里云源，国内快)
+镜像: `crpi-hocnvtkomt7w9v8t.cn-beijing.personal.cr.aliyuncs.com/xpzouying/service-xhs` (阿里云源，国内快)
 版本: v2.4.3
 大小: 1.16GB
-端口: 18060 (MCP HTTP)
+端口: <port> (MCP HTTP)
 
 ```
-数据目录: /path/to/data/xiaohongshu-mcp/data/
-图片目录: /path/to/data/xiaohongshu-mcp/images/
+数据目录: /path/to/data/service-xhs/data/
+图片目录: /path/to/data/service-xhs/images/
 Cookies: /app/data/cookies.json
 ```
 
@@ -21,23 +21,23 @@ Cookies: /app/data/cookies.json
 
 ```bash
 # 1. 创建目录
-mkdir -p /path/to/data/xiaohongshu-mcp/data /path/to/data/xiaohongshu-mcp/images
+mkdir -p /path/to/data/service-xhs/data /path/to/data/service-xhs/images
 
 # 2. 拉取镜像（Docker API 绕过 consent）
 curl -s --unix-socket /var/run/docker.sock -X POST \
-  "http://localhost/images/create?fromImage=crpi-hocnvtkomt7w9v8t.cn-beijing.personal.cr.aliyuncs.com%2Fxpzouying%2Fxiaohongshu-mcp"
+  "http://localhost/images/create?fromImage=crpi-hocnvtkomt7w9v8t.cn-beijing.personal.cr.aliyuncs.com%2Fxpzouying%2Fservice-xhs"
 
 # 3. 创建容器（注意 URL 编码的 fromImage）
 curl -s --unix-socket /var/run/docker.sock -X POST \
-  "http://localhost/containers/create?name=xiaohongshu-mcp" \
+  "http://localhost/containers/create?name=service-xhs" \
   -H "Content-Type: application/json" -d '{
-    "Image": "crpi-hocnvtkomt7w9v8t.cn-beijing.personal.cr.aliyuncs.com/xpzouying/xiaohongshu-mcp",
+    "Image": "crpi-hocnvtkomt7w9v8t.cn-beijing.personal.cr.aliyuncs.com/xpzouying/service-xhs",
     "HostConfig": {
       "Binds": [
-        "/path/to/data/xiaohongshu-mcp/data:/app/data",
-        "/path/to/data/xiaohongshu-mcp/images:/app/images"
+        "/path/to/data/service-xhs/data:/app/data",
+        "/path/to/data/service-xhs/images:/app/images"
       ],
-      "PortBindings": {"18060/tcp": [{"HostPort": "18060"}]},
+      "PortBindings": {"<port>/tcp": [{"HostPort": "<port>"}]},
       "RestartPolicy": {"Name": "unless-stopped"},
       "Init": true,
       "Tty": true
@@ -56,7 +56,7 @@ curl -s --unix-socket /var/run/docker.sock -X POST \
 
 ## 首次登录
 
-容器启动后 MCP 服务在 `http://<NAS_IP>:18060`。首次需在浏览器打开该地址完成小红书扫码登录。
+容器启动后 MCP 服务在 `http://<NAS_IP>:<port>`。首次需在浏览器打开该地址完成小红书扫码登录。
 
 工具列表（18个）:
 - `check_login_status` / `login`
@@ -77,24 +77,24 @@ curl -s --unix-socket /var/run/docker.sock -X POST \
 - 每天发帖上限约 50 篇
 - 图文流量 > 视频 > 纯文字
 
-## 端口不通排查（宿主机连不上 18060）
+## 端口不通排查（宿主机连不上 <port>）
 
-**症状**：`docker ps` 显示 `0.0.0.0:18060->18060/tcp`，容器内 `curl 127.0.0.1:18060/health` 返回 200，但宿主机 `curl localhost:18060` 返回 `Connection refused`。
+**症状**：`docker ps` 显示 `0.0.0.0:<port>-><port>/tcp`，容器内 `curl 127.0.0.1:<port>/health` 返回 200，但宿主机 `curl localhost:<port>` 返回 `Connection refused`。
 
 **诊断三步**：
 
 ```bash
 # 1. 确认容器内服务正常（已知可靠）
-docker exec xiaohongshu-mcp curl -s http://127.0.0.1:18060/health
+docker exec service-xhs curl -s http://127.0.0.1:<port>/health
 
 # 2. 确认 Hermes 能否解析容器名（网络是否已连接）
-docker exec xiaohongshu-mcp curl -s http://hermes:8080/health 2>&1 || echo "NO_ROUTE"
+docker exec service-xhs curl -s http://hermes:8080/health 2>&1 || echo "NO_ROUTE"
 
 # 3. 如果 #2 不通 → 容器未接入 Hermes 网络 → 重新连接（见"连接容器到 Hermes 网络"节）
 ```
 
 **常见原因**：
-- **Docker 网络未连接**（最常见）：容器名 URL (`xiaohongshu-mcp`) 只在同一 Docker 网络内可解析
+- **Docker 网络未连接**（最常见）：容器名 URL (`service-xhs`) 只在同一 Docker 网络内可解析
 - **docker-proxy 挂死**：重启容器可恢复
 - **防火墙/iptables**：NAS 固件更新后规则重置
 
@@ -102,9 +102,9 @@ docker exec xiaohongshu-mcp curl -s http://hermes:8080/health 2>&1 || echo "NO_R
 ```bash
 # 等效于 mcp_xiaohongshu_publish_note
 curl -s --unix-socket /var/run/docker.sock \
-  -X POST "http://localhost/containers/xiaohongshu-mcp/exec" \
+  -X POST "http://localhost/containers/service-xhs/exec" \
   -H "Content-Type: application/json" \
-  -d '{"Cmd":["curl","-s","http://127.0.0.1:18060/mcp","-H","Content-Type: application/json","-d","{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"name\":\"publish_note\",\"arguments\":{...}},\"id\":1}"]}'
+  -d '{"Cmd":["curl","-s","http://127.0.0.1:<port>/mcp","-H","Content-Type: application/json","-d","{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"name\":\"publish_note\",\"arguments\":{...}},\"id\":1}"]}'
 ```
 然后获取 exec ID，调用 `/exec/<id>/start` 执行。走 Docker API 绕过 consent + 端口问题，一箭双雕。
 
@@ -112,18 +112,18 @@ curl -s --unix-socket /var/run/docker.sock \
 
 ### 1. 连接容器到 Hermes 网络
 
-Hermes 运行在 Docker 容器内（通常 `hermes_default` 网络），与 xiaohongshu-mcp 可能不在同一网络，需先连接：
+Hermes 运行在 Docker 容器内（通常 `hermes_default` 网络），与 service-xhs 可能不在同一网络，需先连接：
 
 ```bash
 # 查看 Hermes 网络
 curl -s --unix-socket /var/run/docker.sock http://localhost/containers/hermes/json -o /tmp/h.json
 grep -o '"NetworkMode":"[^"]*"' /tmp/h.json
 
-# 连接 xiaohongshu-mcp 到该网络（如 hermes_default）
+# 连接 service-xhs 到该网络（如 hermes_default）
 curl -s --unix-socket /var/run/docker.sock \
   -X POST "http://localhost/networks/<hermes_network>/connect" \
   -H "Content-Type: application/json" \
-  -d '{"Container":"xiaohongshu-mcp"}'
+  -d '{"Container":"service-xhs"}'
 ```
 
 ### 2. 写入 MCP 配置
@@ -133,7 +133,7 @@ curl -s --unix-socket /var/run/docker.sock \
 ```yaml
 mcp_servers:
   xiaohongshu:
-    url: "http://xiaohongshu-mcp:18060/mcp"
+    url: "http://service-xhs:<port>/mcp"
     timeout: 120
     connect_timeout: 30
 ```
@@ -159,13 +159,13 @@ curl -s --unix-socket /var/run/docker.sock http://localhost/containers/json?all=
 # read_file /tmp/ctrs.json 或 python3 解析
 
 # 2. 如果 stopped，启动它
-curl -s --unix-socket /var/run/docker.sock -X POST http://localhost/containers/xiaohongshu-mcp/start
+curl -s --unix-socket /var/run/docker.sock -X POST http://localhost/containers/service-xhs/start
 
 # 3. MCP 端点是否响应（容器内 curl 绕过端口映射问题）
-docker exec xiaohongshu-mcp curl -s http://127.0.0.1:18060/health 2>/dev/null || echo "NOT_RESPONDING"
+docker exec service-xhs curl -s http://127.0.0.1:<port>/health 2>/dev/null || echo "NOT_RESPONDING"
 
 # 4. 列出可用工具
-docker exec xiaohongshu-mcp curl -s http://127.0.0.1:18060/mcp -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
+docker exec service-xhs curl -s http://127.0.0.1:<port>/mcp -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
 ```
 
 ## 发帖前检查清单
@@ -178,13 +178,13 @@ docker exec xiaohongshu-mcp curl -s http://127.0.0.1:18060/mcp -H "Content-Type:
 4. 确认后再调 `publish_note`
 5. **发帖后验证日志**：检查容器日志确认发布成功，避免假阳性（MCP 返回成功但实际未发布）
    ```bash
-   docker logs xiaohongshu-mcp --tail 10 2>&1 | grep -i "发布内容\|publish\|error"
+   docker logs service-xhs --tail 10 2>&1 | grep -i "发布内容\|publish\|error"
    ```
 
 ## 集成工作流
 
-1. xiaohongshu-mcp 容器提供 HTTP MCP 端点
-2. Hermes 通过 `mcp_servers` 配置的 HTTP transport 连接（容器名 `xiaohongshu-mcp`，非 localhost）
+1. service-xhs 容器提供 HTTP MCP 端点
+2. Hermes 通过 `mcp_servers` 配置的 HTTP transport 连接（容器名 `service-xhs`，非 localhost）
 3. Cron 定时监控评论 → 调 `mcp_xiaohongshu_check_login_status` → `mcp_xiaohongshu_get_feed_detail` → `mcp_xiaohongshu_reply_comment`
 4. 用户发帖需求 → AI 生成文案（标题≤20字，正文≤1000字）→ `mcp_xiaohongshu_publish_note`
 

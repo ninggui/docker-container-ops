@@ -7,8 +7,8 @@
 所有 MCP 调用走 `docker exec` + 容器内 curl：
 
 ```bash
-docker exec xiaohongshu-mcp sh -c \
-  "curl -s 'http://127.0.0.1:18060/mcp' -H 'Content-Type: application/json' \
+docker exec service-xhs sh -c \
+  "curl -s 'http://127.0.0.1:<port>/mcp' -H 'Content-Type: application/json' \
    -d '{\"jsonrpc\":\"2.0\",\"method\":\"tools/call\",\"params\":{\"name\":\"<tool>\",\"arguments\":{...}},\"id\":1}'"
 ```
 
@@ -36,9 +36,9 @@ cat > /path/to/data/xhs_payload.json << 'PAYLOAD'
   "images":["https://images.unsplash.com/xxx"]
 }},"id":1}
 PAYLOAD
-docker cp /path/to/data/xhs_payload.json xiaohongshu-mcp:/tmp/payload.json
-docker exec xiaohongshu-mcp sh -c \
-  "curl -s --max-time 300 'http://127.0.0.1:18060/mcp' -H 'Content-Type: application/json' -d @/tmp/payload.json"
+docker cp /path/to/data/xhs_payload.json service-xhs:/tmp/payload.json
+docker exec service-xhs sh -c \
+  "curl -s --max-time 300 'http://127.0.0.1:<port>/mcp' -H 'Content-Type: application/json' -d @/tmp/payload.json"
 ```
 
 **耗时**：60-120 秒，设 `--max-time 300`。
