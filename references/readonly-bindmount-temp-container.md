@@ -2,17 +2,17 @@
 
 ## 适用场景
 
-容器内配置文件为只读 bind mount（如 service 的 `/app/config.json`），无法直接在容器内修改或 docker cp 到容器内路径。
+容器内配置文件为只读 bind mount（如 ai-morning 的 `/app/config.json`），无法直接在容器内修改或 docker cp 到容器内路径。
 
 ## 原理
 
-Docker daemon 运行在宿主机上。从 Hermes 容器发起 `docker run -v /volume1/docker/<name>:/work:rw` 时，挂载的是宿主机的路径。因此用一个临时 alpine 容器以 rw 模式挂载同一 NAS 路径，就能直接修改宿主机上的配置文件。
+Docker daemon 运行在宿主机上。从 Hermes 容器发起 `docker run -v /nas/docker/<name>:/work:rw` 时，挂载的是宿主机的路径。因此用一个临时 alpine 容器以 rw 模式挂载同一 NAS 路径，就能直接修改宿主机上的配置文件。
 
 ## 完整流程
 
 ### 1. 启动临时容器
 ```bash
-docker run -d --name tmp-cfg-mod -v /volume1/docker/<name>:/work:rw alpine sleep 300
+docker run -d --name tmp-cfg-mod -v /nas/docker/<name>:/work:rw alpine sleep 300
 ```
 
 ### 2. 备份原配置（幂等）
@@ -28,7 +28,7 @@ docker exec tmp-cfg-mod cat /work/config.json
 ### 4. 本地生成新配置并覆盖
 用 `write_file` 在 Hermes 本地生成完整的新 config.json，然后：
 ```bash
-docker cp /path/to/data/config_new.json tmp-cfg-mod:/work/config.json
+docker cp /home/user/config_new.json tmp-cfg-mod:/work/config.json
 ```
 
 ### 5. 验证（用 cat 而非 piped python）
